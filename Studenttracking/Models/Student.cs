@@ -9,7 +9,6 @@ namespace Studenttracking.Models
     public class Student
     {
         public string StudentName { get; set; }
-
         public string CoachName { get; set; }
         public bool FirstGeneration { get; set; }
         public string Race { get; set; }
@@ -28,7 +27,7 @@ namespace Studenttracking.Models
         public bool Rejected { get; set; }
         public bool Waitlisted { get; set; }
         public bool Accepted { get; set; }
-        public bool CollegePackedCompleted { get; set; }
+        public bool CollegePacketCompleted { get; set; }
         public string CoachFinalReview { get; set; }
         public string LOR { get; set; }
         public bool Resume { get; set; }
@@ -49,6 +48,65 @@ namespace Studenttracking.Models
             this.AdmissionDeadline = !string.IsNullOrEmpty(addmissionDeadline) ? addmissionDeadline : throw new ArgumentNullException(nameof(addmissionDeadline));
             this.CoachFinalReview = !string.IsNullOrEmpty(coachFinalReview) ? coachFinalReview : throw new ArgumentNullException(nameof(coachFinalReview));
             this.ScholarshipAwarded = scholarshipAwarded > 0 ? scholarshipAwarded : throw new ArgumentOutOfRangeException(nameof(scholarshipAwarded));
+        }
+
+        public static class Fields
+        {
+            public const string StudentName                     = "Student's Name";
+            public const string CoachName                       = "Coach Name";
+            public const string FirstGeneration                 = "1st Generation?";
+            public const string Race                            = "Race";
+            public const string Disability                      = "Disability?";
+            public const string Classification                  = "Classification";
+            public const string SevenTargetedSchoolCompleted    = "7 Target Schools Completed?";
+            public const string NotifiedStudent                 = "Notified Student?";
+            public const string ScholarshipMatchingComplete     = "Scholarship Matching Complete?";
+            public const string ScholarshipEssay                = "Scholarship Essay";
+            public const string ScholarshipDeadline             = "Scholarship Deadlines";
+            public const string ScholarshipEssayThree           = "Scholarship Essay #3";
+            public const string ReviewOfEssay                   = "Review of Essay?";
+            public const string CollegeApplicationDeadline      = "College Application Deadlines?";
+            public const string CompletedFAFSA                  = "Completed FAFSA?";
+            public const string AdmissionDeadline               = "Admission Deadlines";
+            public const string Rejected                        = "Rejected?";
+            public const string Waitlisted                      = "Rejected?";
+            public const string Accepted                        = "Accepted ?";
+            public const string CollegePacketCompleted          = "College Packet Complete?";
+            public const string CoachFinalReview                = "Coach Final Review";
+            public const string LOR                             = "LOR";
+            public const string Resume                          = "Resume";
+            public const string Interview                       = "Interview?";
+            public const string ScholarshipAwarded              = "Scholarship Awarded";
+
+            public static List<string> Values = new List<string>
+            {
+                StudentName,
+                CoachName,
+                FirstGeneration,
+                Race,
+                Disability,
+                Classification,
+                SevenTargetedSchoolCompleted,
+                NotifiedStudent,
+                ScholarshipMatchingComplete,
+                ScholarshipEssay,
+                ScholarshipDeadline,
+                ScholarshipEssayThree,
+                ReviewOfEssay,
+                CollegeApplicationDeadline,
+                CompletedFAFSA,
+                AdmissionDeadline,
+                Rejected,
+                Waitlisted,
+                Accepted,
+                CollegePacketCompleted,
+                CoachFinalReview,
+                LOR,
+                Resume,
+                Interview,
+                ScholarshipAwarded
+            };
+
         }
         
    
