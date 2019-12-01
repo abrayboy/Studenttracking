@@ -1,1 +1,1 @@
-C:\Users\allen\Desktop\CS\Mine\Studenttracking\Studenttracking\Studenttracking.csproj;x64
+C:\Users\allen\source\repos\Studenttracking\Studenttracking\Studenttracking.csproj;x64

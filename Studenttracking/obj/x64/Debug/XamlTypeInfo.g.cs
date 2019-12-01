@@ -12,11 +12,7 @@ namespace Studenttracking
 {
     public partial class App : global::Windows.UI.Xaml.Markup.IXamlMetadataProvider
     {
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
         private global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMetaDataProvider __appProvider;
-
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         private global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMetaDataProvider _AppProvider
         {
             get
@@ -32,8 +28,6 @@ namespace Studenttracking
         /// <summary>
         /// GetXamlType(Type)
         /// </summary>
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::Windows.UI.Xaml.Markup.IXamlType GetXamlType(global::System.Type type)
         {
             return _AppProvider.GetXamlType(type);
@@ -42,8 +36,6 @@ namespace Studenttracking
         /// <summary>
         /// GetXamlType(String)
         /// </summary>
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::Windows.UI.Xaml.Markup.IXamlType GetXamlType(string fullName)
         {
             return _AppProvider.GetXamlType(fullName);
@@ -52,8 +44,6 @@ namespace Studenttracking
         /// <summary>
         /// GetXmlnsDefinitions()
         /// </summary>
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::Windows.UI.Xaml.Markup.XmlnsDefinition[] GetXmlnsDefinitions()
         {
             return _AppProvider.GetXmlnsDefinitions();
@@ -113,27 +103,1109 @@ namespace Studenttracking.Studenttracking_XamlTypeInfo
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     internal partial class XamlTypeInfoProvider
     {
-        private global::Microsoft.UI.Xaml.Markup.ReflectionXamlMetadataProvider _Provider;
-        private global::Microsoft.UI.Xaml.Markup.ReflectionXamlMetadataProvider Provider
-        {
-            get
-            {
-                if (_Provider == null)
-                {
-                    _Provider = new global::Microsoft.UI.Xaml.Markup.ReflectionXamlMetadataProvider();
-                }
-                return _Provider;
-            }
-        }
-
         public global::Windows.UI.Xaml.Markup.IXamlType GetXamlTypeByType(global::System.Type type)
         {
-            return Provider.GetXamlType(type);
+            global::Windows.UI.Xaml.Markup.IXamlType xamlType;
+            lock (_xamlTypeCacheByType) 
+            { 
+                if (_xamlTypeCacheByType.TryGetValue(type, out xamlType))
+                {
+                    return xamlType;
+                }
+                int typeIndex = LookupTypeIndexByType(type);
+                if(typeIndex != -1)
+                {
+                    xamlType = CreateXamlType(typeIndex);
+                }
+                if (xamlType != null)
+                {
+                    _xamlTypeCacheByName.Add(xamlType.FullName, xamlType);
+                    _xamlTypeCacheByType.Add(xamlType.UnderlyingType, xamlType);
+                }
+            }
+            return xamlType;
         }
 
         public global::Windows.UI.Xaml.Markup.IXamlType GetXamlTypeByName(string typeName)
         {
-            return Provider.GetXamlType(typeName);
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return null;
+            }
+            global::Windows.UI.Xaml.Markup.IXamlType xamlType;
+            lock (_xamlTypeCacheByType)
+            {
+                if (_xamlTypeCacheByName.TryGetValue(typeName, out xamlType))
+                {
+                    return xamlType;
+                }
+                int typeIndex = LookupTypeIndexByName(typeName);
+                if(typeIndex != -1)
+                {
+                    xamlType = CreateXamlType(typeIndex);
+                }
+                if (xamlType != null)
+                {
+                    _xamlTypeCacheByName.Add(xamlType.FullName, xamlType);
+                    _xamlTypeCacheByType.Add(xamlType.UnderlyingType, xamlType);
+                }
+            }
+            return xamlType;
+        }
+
+        public global::Windows.UI.Xaml.Markup.IXamlMember GetMemberByLongName(string longMemberName)
+        {
+            if (string.IsNullOrEmpty(longMemberName))
+            {
+                return null;
+            }
+            global::Windows.UI.Xaml.Markup.IXamlMember xamlMember;
+            lock (_xamlMembers)
+            {
+                if (_xamlMembers.TryGetValue(longMemberName, out xamlMember))
+                {
+                    return xamlMember;
+                }
+                xamlMember = CreateXamlMember(longMemberName);
+                if (xamlMember != null)
+                {
+                    _xamlMembers.Add(longMemberName, xamlMember);
+                }
+            }
+            return xamlMember;
+        }
+
+        global::System.Collections.Generic.Dictionary<string, global::Windows.UI.Xaml.Markup.IXamlType>
+                _xamlTypeCacheByName = new global::System.Collections.Generic.Dictionary<string, global::Windows.UI.Xaml.Markup.IXamlType>();
+
+        global::System.Collections.Generic.Dictionary<global::System.Type, global::Windows.UI.Xaml.Markup.IXamlType>
+                _xamlTypeCacheByType = new global::System.Collections.Generic.Dictionary<global::System.Type, global::Windows.UI.Xaml.Markup.IXamlType>();
+
+        global::System.Collections.Generic.Dictionary<string, global::Windows.UI.Xaml.Markup.IXamlMember>
+                _xamlMembers = new global::System.Collections.Generic.Dictionary<string, global::Windows.UI.Xaml.Markup.IXamlMember>();
+
+        string[] _typeNameTable = null;
+        global::System.Type[] _typeTable = null;
+
+        private void InitTypeTables()
+        {
+            _typeNameTable = new string[16];
+            _typeNameTable[0] = "Studenttracking.ViewModels.StudentsViewModel";
+            _typeNameTable[1] = "Object";
+            _typeNameTable[2] = "Studenttracking.Models.StudentManager";
+            _typeNameTable[3] = "Studenttracking.Models.Student";
+            _typeNameTable[4] = "String";
+            _typeNameTable[5] = "Boolean";
+            _typeNameTable[6] = "Studenttracking.Models.Classification";
+            _typeNameTable[7] = "System.Enum";
+            _typeNameTable[8] = "System.ValueType";
+            _typeNameTable[9] = "System.DateTime";
+            _typeNameTable[10] = "Double";
+            _typeNameTable[11] = "System.Collections.ObjectModel.ObservableCollection`1<Studenttracking.Models.Student>";
+            _typeNameTable[12] = "System.Collections.ObjectModel.Collection`1<Studenttracking.Models.Student>";
+            _typeNameTable[13] = "Studenttracking.MainPage";
+            _typeNameTable[14] = "Windows.UI.Xaml.Controls.Page";
+            _typeNameTable[15] = "Windows.UI.Xaml.Controls.UserControl";
+
+            _typeTable = new global::System.Type[16];
+            _typeTable[0] = typeof(global::Studenttracking.ViewModels.StudentsViewModel);
+            _typeTable[1] = typeof(global::System.Object);
+            _typeTable[2] = typeof(global::Studenttracking.Models.StudentManager);
+            _typeTable[3] = typeof(global::Studenttracking.Models.Student);
+            _typeTable[4] = typeof(global::System.String);
+            _typeTable[5] = typeof(global::System.Boolean);
+            _typeTable[6] = typeof(global::Studenttracking.Models.Classification);
+            _typeTable[7] = typeof(global::System.Enum);
+            _typeTable[8] = typeof(global::System.ValueType);
+            _typeTable[9] = typeof(global::System.DateTime);
+            _typeTable[10] = typeof(global::System.Double);
+            _typeTable[11] = typeof(global::System.Collections.ObjectModel.ObservableCollection<global::Studenttracking.Models.Student>);
+            _typeTable[12] = typeof(global::System.Collections.ObjectModel.Collection<global::Studenttracking.Models.Student>);
+            _typeTable[13] = typeof(global::Studenttracking.MainPage);
+            _typeTable[14] = typeof(global::Windows.UI.Xaml.Controls.Page);
+            _typeTable[15] = typeof(global::Windows.UI.Xaml.Controls.UserControl);
+        }
+
+        private int LookupTypeIndexByName(string typeName)
+        {
+            if (_typeNameTable == null)
+            {
+                InitTypeTables();
+            }
+            for (int i=0; i<_typeNameTable.Length; i++)
+            {
+                if(0 == string.CompareOrdinal(_typeNameTable[i], typeName))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private int LookupTypeIndexByType(global::System.Type type)
+        {
+            if (_typeTable == null)
+            {
+                InitTypeTables();
+            }
+            for(int i=0; i<_typeTable.Length; i++)
+            {
+                if(type == _typeTable[i])
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private object Activate_0_StudentsViewModel() { return new global::Studenttracking.ViewModels.StudentsViewModel(); }
+        private object Activate_2_StudentManager() { return new global::Studenttracking.Models.StudentManager(); }
+        private object Activate_11_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::Studenttracking.Models.Student>(); }
+        private object Activate_12_Collection() { return new global::System.Collections.ObjectModel.Collection<global::Studenttracking.Models.Student>(); }
+        private object Activate_13_MainPage() { return new global::Studenttracking.MainPage(); }
+        private void VectorAdd_2_StudentManager(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::Studenttracking.Models.Student>)instance;
+            var newItem = (global::Studenttracking.Models.Student)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_11_ObservableCollection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::Studenttracking.Models.Student>)instance;
+            var newItem = (global::Studenttracking.Models.Student)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_12_Collection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::Studenttracking.Models.Student>)instance;
+            var newItem = (global::Studenttracking.Models.Student)item;
+            collection.Add(newItem);
+        }
+
+        private global::Windows.UI.Xaml.Markup.IXamlType CreateXamlType(int typeIndex)
+        {
+            global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType xamlType = null;
+            global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType userType;
+            string typeName = _typeNameTable[typeIndex];
+            global::System.Type type = _typeTable[typeIndex];
+
+            switch (typeIndex)
+            {
+
+            case 0:   //  Studenttracking.ViewModels.StudentsViewModel
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.Activator = Activate_0_StudentsViewModel;
+                userType.AddMemberName("StudentManager");
+                userType.AddMemberName("Students");
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 1:   //  Object
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 2:   //  Studenttracking.Models.StudentManager
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.CollectionAdd = VectorAdd_2_StudentManager;
+                userType.SetIsReturnTypeStub();
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 3:   //  Studenttracking.Models.Student
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.AddMemberName("StudentName");
+                userType.AddMemberName("CoachName");
+                userType.AddMemberName("FirstGeneration");
+                userType.AddMemberName("Race");
+                userType.AddMemberName("Disability");
+                userType.AddMemberName("Classification");
+                userType.AddMemberName("SevenTargetedSchoolCompleted");
+                userType.AddMemberName("NotifiedStudent");
+                userType.AddMemberName("ScholarshipMatchingComplete");
+                userType.AddMemberName("ScholarshipEssay");
+                userType.AddMemberName("ScholarshipDeadline");
+                userType.AddMemberName("ScholarshipEssayThree");
+                userType.AddMemberName("ReviewOfEssay");
+                userType.AddMemberName("CollegeApplicationDeadline");
+                userType.AddMemberName("CompletedFAFSA");
+                userType.AddMemberName("AdmissionDeadline");
+                userType.AddMemberName("Rejected");
+                userType.AddMemberName("Waitlisted");
+                userType.AddMemberName("Accepted");
+                userType.AddMemberName("CollegePacketCompleted");
+                userType.AddMemberName("CoachFinalReview");
+                userType.AddMemberName("LOR");
+                userType.AddMemberName("Resume");
+                userType.AddMemberName("Interview");
+                userType.AddMemberName("ScholarshipAwarded");
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 4:   //  String
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 5:   //  Boolean
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 6:   //  Studenttracking.Models.Classification
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Enum"));
+                userType.AddEnumValue("Freshman", global::Studenttracking.Models.Classification.Freshman);
+                userType.AddEnumValue("Sophomore", global::Studenttracking.Models.Classification.Sophomore);
+                userType.AddEnumValue("Junior", global::Studenttracking.Models.Classification.Junior);
+                userType.AddEnumValue("Senior", global::Studenttracking.Models.Classification.Senior);
+                userType.AddEnumValue("Grad", global::Studenttracking.Models.Classification.Grad);
+                userType.AddEnumValue("Grad_Med", global::Studenttracking.Models.Classification.Grad_Med);
+                userType.AddEnumValue("Med", global::Studenttracking.Models.Classification.Med);
+                userType.AddEnumValue("Law", global::Studenttracking.Models.Classification.Law);
+                userType.AddEnumValue("Engineering", global::Studenttracking.Models.Classification.Engineering);
+                userType.AddEnumValue("Nursing", global::Studenttracking.Models.Classification.Nursing);
+                userType.AddEnumValue("Phd", global::Studenttracking.Models.Classification.Phd);
+                userType.AddEnumValue("Certification", global::Studenttracking.Models.Classification.Certification);
+                userType.AddEnumValue("None", global::Studenttracking.Models.Classification.None);
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 7:   //  System.Enum
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
+                xamlType = userType;
+                break;
+
+            case 8:   //  System.ValueType
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                xamlType = userType;
+                break;
+
+            case 9:   //  System.DateTime
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 10:   //  Double
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 11:   //  System.Collections.ObjectModel.ObservableCollection`1<Studenttracking.Models.Student>
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Collections.ObjectModel.Collection`1<Studenttracking.Models.Student>"));
+                userType.CollectionAdd = VectorAdd_11_ObservableCollection;
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 12:   //  System.Collections.ObjectModel.Collection`1<Studenttracking.Models.Student>
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.Activator = Activate_12_Collection;
+                userType.CollectionAdd = VectorAdd_12_Collection;
+                xamlType = userType;
+                break;
+
+            case 13:   //  Studenttracking.MainPage
+                userType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Windows.UI.Xaml.Controls.Page"));
+                userType.Activator = Activate_13_MainPage;
+                userType.AddMemberName("StudentsViewModel");
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 14:   //  Windows.UI.Xaml.Controls.Page
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 15:   //  Windows.UI.Xaml.Controls.UserControl
+                xamlType = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+            }
+            return xamlType;
+        }
+
+
+        private object get_0_StudentsViewModel_StudentManager(object instance)
+        {
+            var that = (global::Studenttracking.ViewModels.StudentsViewModel)instance;
+            return that.StudentManager;
+        }
+        private void set_0_StudentsViewModel_StudentManager(object instance, object Value)
+        {
+            var that = (global::Studenttracking.ViewModels.StudentsViewModel)instance;
+            that.StudentManager = (global::Studenttracking.Models.StudentManager)Value;
+        }
+        private object get_1_Student_StudentName(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.StudentName;
+        }
+        private void set_1_Student_StudentName(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.StudentName = (global::System.String)Value;
+        }
+        private object get_2_Student_CoachName(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.CoachName;
+        }
+        private void set_2_Student_CoachName(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.CoachName = (global::System.String)Value;
+        }
+        private object get_3_Student_FirstGeneration(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.FirstGeneration;
+        }
+        private void set_3_Student_FirstGeneration(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.FirstGeneration = (global::System.Boolean)Value;
+        }
+        private object get_4_Student_Race(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Race;
+        }
+        private void set_4_Student_Race(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Race = (global::System.String)Value;
+        }
+        private object get_5_Student_Disability(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Disability;
+        }
+        private void set_5_Student_Disability(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Disability = (global::System.Boolean)Value;
+        }
+        private object get_6_Student_Classification(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Classification;
+        }
+        private void set_6_Student_Classification(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Classification = (global::Studenttracking.Models.Classification)Value;
+        }
+        private object get_7_Student_SevenTargetedSchoolCompleted(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.SevenTargetedSchoolCompleted;
+        }
+        private void set_7_Student_SevenTargetedSchoolCompleted(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.SevenTargetedSchoolCompleted = (global::System.Boolean)Value;
+        }
+        private object get_8_Student_NotifiedStudent(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.NotifiedStudent;
+        }
+        private void set_8_Student_NotifiedStudent(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.NotifiedStudent = (global::System.Boolean)Value;
+        }
+        private object get_9_Student_ScholarshipMatchingComplete(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ScholarshipMatchingComplete;
+        }
+        private void set_9_Student_ScholarshipMatchingComplete(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ScholarshipMatchingComplete = (global::System.Boolean)Value;
+        }
+        private object get_10_Student_ScholarshipEssay(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ScholarshipEssay;
+        }
+        private void set_10_Student_ScholarshipEssay(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ScholarshipEssay = (global::System.Boolean)Value;
+        }
+        private object get_11_Student_ScholarshipDeadline(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ScholarshipDeadline;
+        }
+        private void set_11_Student_ScholarshipDeadline(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ScholarshipDeadline = (global::System.DateTime)Value;
+        }
+        private object get_12_Student_ScholarshipEssayThree(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ScholarshipEssayThree;
+        }
+        private void set_12_Student_ScholarshipEssayThree(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ScholarshipEssayThree = (global::System.DateTime)Value;
+        }
+        private object get_13_Student_ReviewOfEssay(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ReviewOfEssay;
+        }
+        private void set_13_Student_ReviewOfEssay(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ReviewOfEssay = (global::System.String)Value;
+        }
+        private object get_14_Student_CollegeApplicationDeadline(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.CollegeApplicationDeadline;
+        }
+        private void set_14_Student_CollegeApplicationDeadline(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.CollegeApplicationDeadline = (global::System.String)Value;
+        }
+        private object get_15_Student_CompletedFAFSA(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.CompletedFAFSA;
+        }
+        private void set_15_Student_CompletedFAFSA(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.CompletedFAFSA = (global::System.Boolean)Value;
+        }
+        private object get_16_Student_AdmissionDeadline(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.AdmissionDeadline;
+        }
+        private void set_16_Student_AdmissionDeadline(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.AdmissionDeadline = (global::System.String)Value;
+        }
+        private object get_17_Student_Rejected(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Rejected;
+        }
+        private void set_17_Student_Rejected(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Rejected = (global::System.Boolean)Value;
+        }
+        private object get_18_Student_Waitlisted(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Waitlisted;
+        }
+        private void set_18_Student_Waitlisted(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Waitlisted = (global::System.Boolean)Value;
+        }
+        private object get_19_Student_Accepted(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Accepted;
+        }
+        private void set_19_Student_Accepted(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Accepted = (global::System.Boolean)Value;
+        }
+        private object get_20_Student_CollegePacketCompleted(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.CollegePacketCompleted;
+        }
+        private void set_20_Student_CollegePacketCompleted(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.CollegePacketCompleted = (global::System.Boolean)Value;
+        }
+        private object get_21_Student_CoachFinalReview(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.CoachFinalReview;
+        }
+        private void set_21_Student_CoachFinalReview(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.CoachFinalReview = (global::System.String)Value;
+        }
+        private object get_22_Student_LOR(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.LOR;
+        }
+        private void set_22_Student_LOR(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.LOR = (global::System.String)Value;
+        }
+        private object get_23_Student_Resume(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Resume;
+        }
+        private void set_23_Student_Resume(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Resume = (global::System.Boolean)Value;
+        }
+        private object get_24_Student_Interview(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.Interview;
+        }
+        private void set_24_Student_Interview(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.Interview = (global::System.Boolean)Value;
+        }
+        private object get_25_Student_ScholarshipAwarded(object instance)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            return that.ScholarshipAwarded;
+        }
+        private void set_25_Student_ScholarshipAwarded(object instance, object Value)
+        {
+            var that = (global::Studenttracking.Models.Student)instance;
+            that.ScholarshipAwarded = (global::System.Double)Value;
+        }
+        private object get_26_StudentsViewModel_Students(object instance)
+        {
+            var that = (global::Studenttracking.ViewModels.StudentsViewModel)instance;
+            return that.Students;
+        }
+        private void set_26_StudentsViewModel_Students(object instance, object Value)
+        {
+            var that = (global::Studenttracking.ViewModels.StudentsViewModel)instance;
+            that.Students = (global::System.Collections.ObjectModel.ObservableCollection<global::Studenttracking.Models.Student>)Value;
+        }
+        private object get_27_MainPage_StudentsViewModel(object instance)
+        {
+            var that = (global::Studenttracking.MainPage)instance;
+            return that.StudentsViewModel;
+        }
+        private void set_27_MainPage_StudentsViewModel(object instance, object Value)
+        {
+            var that = (global::Studenttracking.MainPage)instance;
+            that.StudentsViewModel = (global::Studenttracking.ViewModels.StudentsViewModel)Value;
+        }
+
+        private global::Windows.UI.Xaml.Markup.IXamlMember CreateXamlMember(string longMemberName)
+        {
+            global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember xamlMember = null;
+            global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType userType;
+
+            switch (longMemberName)
+            {
+            case "Studenttracking.ViewModels.StudentsViewModel.StudentManager":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.ViewModels.StudentsViewModel");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "StudentManager", "Studenttracking.Models.StudentManager");
+                xamlMember.Getter = get_0_StudentsViewModel_StudentManager;
+                xamlMember.Setter = set_0_StudentsViewModel_StudentManager;
+                break;
+            case "Studenttracking.Models.Student.StudentName":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "StudentName", "String");
+                xamlMember.Getter = get_1_Student_StudentName;
+                xamlMember.Setter = set_1_Student_StudentName;
+                break;
+            case "Studenttracking.Models.Student.CoachName":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "CoachName", "String");
+                xamlMember.Getter = get_2_Student_CoachName;
+                xamlMember.Setter = set_2_Student_CoachName;
+                break;
+            case "Studenttracking.Models.Student.FirstGeneration":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "FirstGeneration", "Boolean");
+                xamlMember.Getter = get_3_Student_FirstGeneration;
+                xamlMember.Setter = set_3_Student_FirstGeneration;
+                break;
+            case "Studenttracking.Models.Student.Race":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Race", "String");
+                xamlMember.Getter = get_4_Student_Race;
+                xamlMember.Setter = set_4_Student_Race;
+                break;
+            case "Studenttracking.Models.Student.Disability":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Disability", "Boolean");
+                xamlMember.Getter = get_5_Student_Disability;
+                xamlMember.Setter = set_5_Student_Disability;
+                break;
+            case "Studenttracking.Models.Student.Classification":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Classification", "Studenttracking.Models.Classification");
+                xamlMember.Getter = get_6_Student_Classification;
+                xamlMember.Setter = set_6_Student_Classification;
+                break;
+            case "Studenttracking.Models.Student.SevenTargetedSchoolCompleted":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "SevenTargetedSchoolCompleted", "Boolean");
+                xamlMember.Getter = get_7_Student_SevenTargetedSchoolCompleted;
+                xamlMember.Setter = set_7_Student_SevenTargetedSchoolCompleted;
+                break;
+            case "Studenttracking.Models.Student.NotifiedStudent":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "NotifiedStudent", "Boolean");
+                xamlMember.Getter = get_8_Student_NotifiedStudent;
+                xamlMember.Setter = set_8_Student_NotifiedStudent;
+                break;
+            case "Studenttracking.Models.Student.ScholarshipMatchingComplete":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ScholarshipMatchingComplete", "Boolean");
+                xamlMember.Getter = get_9_Student_ScholarshipMatchingComplete;
+                xamlMember.Setter = set_9_Student_ScholarshipMatchingComplete;
+                break;
+            case "Studenttracking.Models.Student.ScholarshipEssay":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ScholarshipEssay", "Boolean");
+                xamlMember.Getter = get_10_Student_ScholarshipEssay;
+                xamlMember.Setter = set_10_Student_ScholarshipEssay;
+                break;
+            case "Studenttracking.Models.Student.ScholarshipDeadline":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ScholarshipDeadline", "System.DateTime");
+                xamlMember.Getter = get_11_Student_ScholarshipDeadline;
+                xamlMember.Setter = set_11_Student_ScholarshipDeadline;
+                break;
+            case "Studenttracking.Models.Student.ScholarshipEssayThree":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ScholarshipEssayThree", "System.DateTime");
+                xamlMember.Getter = get_12_Student_ScholarshipEssayThree;
+                xamlMember.Setter = set_12_Student_ScholarshipEssayThree;
+                break;
+            case "Studenttracking.Models.Student.ReviewOfEssay":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ReviewOfEssay", "String");
+                xamlMember.Getter = get_13_Student_ReviewOfEssay;
+                xamlMember.Setter = set_13_Student_ReviewOfEssay;
+                break;
+            case "Studenttracking.Models.Student.CollegeApplicationDeadline":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "CollegeApplicationDeadline", "String");
+                xamlMember.Getter = get_14_Student_CollegeApplicationDeadline;
+                xamlMember.Setter = set_14_Student_CollegeApplicationDeadline;
+                break;
+            case "Studenttracking.Models.Student.CompletedFAFSA":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "CompletedFAFSA", "Boolean");
+                xamlMember.Getter = get_15_Student_CompletedFAFSA;
+                xamlMember.Setter = set_15_Student_CompletedFAFSA;
+                break;
+            case "Studenttracking.Models.Student.AdmissionDeadline":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "AdmissionDeadline", "String");
+                xamlMember.Getter = get_16_Student_AdmissionDeadline;
+                xamlMember.Setter = set_16_Student_AdmissionDeadline;
+                break;
+            case "Studenttracking.Models.Student.Rejected":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Rejected", "Boolean");
+                xamlMember.Getter = get_17_Student_Rejected;
+                xamlMember.Setter = set_17_Student_Rejected;
+                break;
+            case "Studenttracking.Models.Student.Waitlisted":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Waitlisted", "Boolean");
+                xamlMember.Getter = get_18_Student_Waitlisted;
+                xamlMember.Setter = set_18_Student_Waitlisted;
+                break;
+            case "Studenttracking.Models.Student.Accepted":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Accepted", "Boolean");
+                xamlMember.Getter = get_19_Student_Accepted;
+                xamlMember.Setter = set_19_Student_Accepted;
+                break;
+            case "Studenttracking.Models.Student.CollegePacketCompleted":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "CollegePacketCompleted", "Boolean");
+                xamlMember.Getter = get_20_Student_CollegePacketCompleted;
+                xamlMember.Setter = set_20_Student_CollegePacketCompleted;
+                break;
+            case "Studenttracking.Models.Student.CoachFinalReview":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "CoachFinalReview", "String");
+                xamlMember.Getter = get_21_Student_CoachFinalReview;
+                xamlMember.Setter = set_21_Student_CoachFinalReview;
+                break;
+            case "Studenttracking.Models.Student.LOR":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "LOR", "String");
+                xamlMember.Getter = get_22_Student_LOR;
+                xamlMember.Setter = set_22_Student_LOR;
+                break;
+            case "Studenttracking.Models.Student.Resume":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Resume", "Boolean");
+                xamlMember.Getter = get_23_Student_Resume;
+                xamlMember.Setter = set_23_Student_Resume;
+                break;
+            case "Studenttracking.Models.Student.Interview":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Interview", "Boolean");
+                xamlMember.Getter = get_24_Student_Interview;
+                xamlMember.Setter = set_24_Student_Interview;
+                break;
+            case "Studenttracking.Models.Student.ScholarshipAwarded":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.Models.Student");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "ScholarshipAwarded", "Double");
+                xamlMember.Getter = get_25_Student_ScholarshipAwarded;
+                xamlMember.Setter = set_25_Student_ScholarshipAwarded;
+                break;
+            case "Studenttracking.ViewModels.StudentsViewModel.Students":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.ViewModels.StudentsViewModel");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "Students", "System.Collections.ObjectModel.ObservableCollection`1<Studenttracking.Models.Student>");
+                xamlMember.Getter = get_26_StudentsViewModel_Students;
+                xamlMember.Setter = set_26_StudentsViewModel_Students;
+                break;
+            case "Studenttracking.MainPage.StudentsViewModel":
+                userType = (global::Studenttracking.Studenttracking_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Studenttracking.MainPage");
+                xamlMember = new global::Studenttracking.Studenttracking_XamlTypeInfo.XamlMember(this, "StudentsViewModel", "Studenttracking.ViewModels.StudentsViewModel");
+                xamlMember.Getter = get_27_MainPage_StudentsViewModel;
+                xamlMember.Setter = set_27_MainPage_StudentsViewModel;
+                break;
+            }
+            return xamlMember;
+        }
+    }
+
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+    internal class XamlSystemBaseType : global::Windows.UI.Xaml.Markup.IXamlType
+    {
+        string _fullName;
+        global::System.Type _underlyingType;
+
+        public XamlSystemBaseType(string fullName, global::System.Type underlyingType)
+        {
+            _fullName = fullName;
+            _underlyingType = underlyingType;
+        }
+
+        public string FullName { get { return _fullName; } }
+
+        public global::System.Type UnderlyingType
+        {
+            get
+            {
+                return _underlyingType;
+            }
+        }
+
+        virtual public global::Windows.UI.Xaml.Markup.IXamlType BaseType { get { throw new global::System.NotImplementedException(); } }
+        virtual public global::Windows.UI.Xaml.Markup.IXamlMember ContentProperty { get { throw new global::System.NotImplementedException(); } }
+        virtual public global::Windows.UI.Xaml.Markup.IXamlMember GetMember(string name) { throw new global::System.NotImplementedException(); }
+        virtual public bool IsArray { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsCollection { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsConstructible { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsDictionary { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsMarkupExtension { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsBindable { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsReturnTypeStub { get { throw new global::System.NotImplementedException(); } }
+        virtual public bool IsLocalType { get { throw new global::System.NotImplementedException(); } }
+        virtual public global::Windows.UI.Xaml.Markup.IXamlType ItemType { get { throw new global::System.NotImplementedException(); } }
+        virtual public global::Windows.UI.Xaml.Markup.IXamlType KeyType { get { throw new global::System.NotImplementedException(); } }
+        virtual public object ActivateInstance() { throw new global::System.NotImplementedException(); }
+        virtual public void AddToMap(object instance, object key, object item)  { throw new global::System.NotImplementedException(); }
+        virtual public void AddToVector(object instance, object item)  { throw new global::System.NotImplementedException(); }
+        virtual public void RunInitializer()   { throw new global::System.NotImplementedException(); }
+        virtual public object CreateFromString(string input)   { throw new global::System.NotImplementedException(); }
+    }
+    
+    internal delegate object Activator();
+    internal delegate void AddToCollection(object instance, object item);
+    internal delegate void AddToDictionary(object instance, object key, object item);
+    internal delegate object CreateFromStringMethod(string args);
+
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+    internal class XamlUserType : global::Studenttracking.Studenttracking_XamlTypeInfo.XamlSystemBaseType
+    {
+        global::Studenttracking.Studenttracking_XamlTypeInfo.XamlTypeInfoProvider _provider;
+        global::Windows.UI.Xaml.Markup.IXamlType _baseType;
+        bool _isArray;
+        bool _isMarkupExtension;
+        bool _isBindable;
+        bool _isReturnTypeStub;
+        bool _isLocalType;
+
+        string _contentPropertyName;
+        string _itemTypeName;
+        string _keyTypeName;
+        global::System.Collections.Generic.Dictionary<string, string> _memberNames;
+        global::System.Collections.Generic.Dictionary<string, object> _enumValues;
+
+        public XamlUserType(global::Studenttracking.Studenttracking_XamlTypeInfo.XamlTypeInfoProvider provider, string fullName, global::System.Type fullType, global::Windows.UI.Xaml.Markup.IXamlType baseType)
+            :base(fullName, fullType)
+        {
+            _provider = provider;
+            _baseType = baseType;
+        }
+
+        // --- Interface methods ----
+
+        override public global::Windows.UI.Xaml.Markup.IXamlType BaseType { get { return _baseType; } }
+        override public bool IsArray { get { return _isArray; } }
+        override public bool IsCollection { get { return (CollectionAdd != null); } }
+        override public bool IsConstructible { get { return (Activator != null); } }
+        override public bool IsDictionary { get { return (DictionaryAdd != null); } }
+        override public bool IsMarkupExtension { get { return _isMarkupExtension; } }
+        override public bool IsBindable { get { return _isBindable; } }
+        override public bool IsReturnTypeStub { get { return _isReturnTypeStub; } }
+        override public bool IsLocalType { get { return _isLocalType; } }
+
+        override public global::Windows.UI.Xaml.Markup.IXamlMember ContentProperty
+        {
+            get { return _provider.GetMemberByLongName(_contentPropertyName); }
+        }
+
+        override public global::Windows.UI.Xaml.Markup.IXamlType ItemType
+        {
+            get { return _provider.GetXamlTypeByName(_itemTypeName); }
+        }
+
+        override public global::Windows.UI.Xaml.Markup.IXamlType KeyType
+        {
+            get { return _provider.GetXamlTypeByName(_keyTypeName); }
+        }
+
+        override public global::Windows.UI.Xaml.Markup.IXamlMember GetMember(string name)
+        {
+            if (_memberNames == null)
+            {
+                return null;
+            }
+            string longName;
+            if (_memberNames.TryGetValue(name, out longName))
+            {
+                return _provider.GetMemberByLongName(longName);
+            }
+            return null;
+        }
+
+        override public object ActivateInstance()
+        {
+            return Activator(); 
+        }
+
+        override public void AddToMap(object instance, object key, object item) 
+        {
+            DictionaryAdd(instance, key, item);
+        }
+
+        override public void AddToVector(object instance, object item)
+        {
+            CollectionAdd(instance, item);
+        }
+
+        override public void RunInitializer() 
+        {
+            global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(UnderlyingType.TypeHandle);
+        }
+
+        override public object CreateFromString(string input)
+        {
+            if (CreateFromStringMethod != null)
+            {
+                return this.CreateFromStringMethod(input);
+            }
+            else if (_enumValues != null)
+            {
+                int value = 0;
+
+                string[] valueParts = input.Split(',');
+
+                foreach (string valuePart in valueParts) 
+                {
+                    object partValue;
+                    int enumFieldValue = 0;
+                    try
+                    {
+                        if (_enumValues.TryGetValue(valuePart.Trim(), out partValue))
+                        {
+                            enumFieldValue = global::System.Convert.ToInt32(partValue);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                enumFieldValue = global::System.Convert.ToInt32(valuePart.Trim());
+                            }
+                            catch( global::System.FormatException )
+                            {
+                                foreach( string key in _enumValues.Keys )
+                                {
+                                    if( string.Compare(valuePart.Trim(), key, global::System.StringComparison.OrdinalIgnoreCase) == 0 )
+                                    {
+                                        if( _enumValues.TryGetValue(key.Trim(), out partValue) )
+                                        {
+                                            enumFieldValue = global::System.Convert.ToInt32(partValue);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        value |= enumFieldValue; 
+                    }
+                    catch( global::System.FormatException )
+                    {
+                        throw new global::System.ArgumentException(input, FullName);
+                    }
+                }
+
+                return value; 
+            }
+            throw new global::System.ArgumentException(input, FullName);
+        }
+
+        // --- End of Interface methods
+
+        public Activator Activator { get; set; }
+        public AddToCollection CollectionAdd { get; set; }
+        public AddToDictionary DictionaryAdd { get; set; }
+        public CreateFromStringMethod CreateFromStringMethod {get; set; }
+
+        public void SetContentPropertyName(string contentPropertyName)
+        {
+            _contentPropertyName = contentPropertyName;
+        }
+
+        public void SetIsArray()
+        {
+            _isArray = true; 
+        }
+
+        public void SetIsMarkupExtension()
+        {
+            _isMarkupExtension = true;
+        }
+
+        public void SetIsBindable()
+        {
+            _isBindable = true;
+        }
+
+        public void SetIsReturnTypeStub()
+        {
+            _isReturnTypeStub = true;
+        }
+
+        public void SetIsLocalType()
+        {
+            _isLocalType = true;
+        }
+
+        public void SetItemTypeName(string itemTypeName)
+        {
+            _itemTypeName = itemTypeName;
+        }
+
+        public void SetKeyTypeName(string keyTypeName)
+        {
+            _keyTypeName = keyTypeName;
+        }
+
+        public void AddMemberName(string shortName)
+        {
+            if(_memberNames == null)
+            {
+                _memberNames =  new global::System.Collections.Generic.Dictionary<string,string>();
+            }
+            _memberNames.Add(shortName, FullName + "." + shortName);
+        }
+
+        public void AddEnumValue(string name, object value)
+        {
+            if (_enumValues == null)
+            {
+                _enumValues = new global::System.Collections.Generic.Dictionary<string, object>();
+            }
+            _enumValues.Add(name, value);
+        }
+    }
+
+    internal delegate object Getter(object instance);
+    internal delegate void Setter(object instance, object value);
+
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Windows.UI.Xaml.Build.Tasks"," 10.0.17.0")]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+    internal class XamlMember : global::Windows.UI.Xaml.Markup.IXamlMember
+    {
+        global::Studenttracking.Studenttracking_XamlTypeInfo.XamlTypeInfoProvider _provider;
+        string _name;
+        bool _isAttachable;
+        bool _isDependencyProperty;
+        bool _isReadOnly;
+
+        string _typeName;
+        string _targetTypeName;
+
+        public XamlMember(global::Studenttracking.Studenttracking_XamlTypeInfo.XamlTypeInfoProvider provider, string name, string typeName)
+        {
+            _name = name;
+            _typeName = typeName;
+            _provider = provider;
+        }
+
+        public string Name { get { return _name; } }
+
+        public global::Windows.UI.Xaml.Markup.IXamlType Type
+        {
+            get { return _provider.GetXamlTypeByName(_typeName); }
+        }
+
+        public void SetTargetTypeName(string targetTypeName)
+        {
+            _targetTypeName = targetTypeName;
+        }
+        public global::Windows.UI.Xaml.Markup.IXamlType TargetType
+        {
+            get { return _provider.GetXamlTypeByName(_targetTypeName); }
+        }
+
+        public void SetIsAttachable() { _isAttachable = true; }
+        public bool IsAttachable { get { return _isAttachable; } }
+
+        public void SetIsDependencyProperty() { _isDependencyProperty = true; }
+        public bool IsDependencyProperty { get { return _isDependencyProperty; } }
+
+        public void SetIsReadOnly() { _isReadOnly = true; }
+        public bool IsReadOnly { get { return _isReadOnly; } }
+
+        public Getter Getter { get; set; }
+        public object GetValue(object instance)
+        {
+            if (Getter != null)
+                return Getter(instance);
+            else
+                throw new global::System.InvalidOperationException("GetValue");
+        }
+
+        public Setter Setter { get; set; }
+        public void SetValue(object instance, object value)
+        {
+            if (Setter != null)
+                Setter(instance, value);
+            else
+                throw new global::System.InvalidOperationException("SetValue");
         }
     }
 }

@@ -5,11 +5,26 @@
     xmlns:local="using:Studenttracking"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="using:Studenttracking.ViewModels"
+    xmlns:model="using:Studenttracking.Models"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.DataContext>
+        <viewModel:StudentsViewModel/>
+    </Page.DataContext>
+
     <RelativePanel>
-        <Button x:Name="button1" Content="hello" Width="200"/>
-        <Button x:Name="button2" Content="Yo" Width="200" RelativePanel.RightOf="button1"/>
+        <ListView x:Name="Student" ItemsSource="{Binding Students, Mode=TwoWay}" Width="500" Height="500">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="model:Student">
+                    <RelativePanel>
+                        <TextBlock Text="{Binding StudentName}">
+                            
+                        </TextBlock>
+                    </RelativePanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </RelativePanel>
 </Page>

@@ -40,7 +40,15 @@ namespace Studenttracking.ViewModels
         public StudentsViewModel()
         {
             this.StudentManager = new StudentManager();
-            this.Students = new ObservableCollection<Student>();
+            this.Students = new ObservableCollection<Student>
+            {
+                new Student("Jack"),
+                 new Student("Jck"),
+                  new Student("Jak"),
+                   new Student("Jac"),
+                    new Student("ack")
+
+            };
         }
 
         public void Add(Student student)

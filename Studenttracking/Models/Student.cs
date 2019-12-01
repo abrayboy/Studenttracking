@@ -50,6 +50,11 @@ namespace Studenttracking.Models
             this.ScholarshipAwarded = scholarshipAwarded > 0 ? scholarshipAwarded : throw new ArgumentOutOfRangeException(nameof(scholarshipAwarded));
         }
 
+        public Student(string studentName)
+        {
+            this.StudentName = studentName;
+        }
+
         public static class Fields
         {
             public const string StudentName                     = "Student's Name";
