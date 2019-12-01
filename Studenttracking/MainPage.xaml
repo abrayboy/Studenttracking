@@ -16,6 +16,15 @@
 
     <RelativePanel>
         <ListView x:Name="Student" ItemsSource="{Binding Students, Mode=TwoWay}" Width="500" Height="500">
+            <ListView.HeaderTemplate>
+                <DataTemplate>
+                    <Grid Padding="12" Background="#00FFFF">
+                        <ColumnDefinition Width="200" />
+                        </Grid.ColumnDefinition>
+                        <TextBlock Grid.Column="0" Text="StudentName" HorizontalAlignment="Center">
+                   </Grid>
+                </DataTemplate>
+            </ListView.HeaderTemplate>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="model:Student">
                     <RelativePanel>
@@ -26,5 +35,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+
+        <TextBlock x:Name="errs" RelativePanel.RightOf="Student"/>
     </RelativePanel>
 </Page>

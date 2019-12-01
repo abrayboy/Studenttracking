@@ -1,4 +1,5 @@
-﻿using Studenttracking.IO;
+﻿using Studenttracking.Extensions;
+using Studenttracking.IO;
 using Studenttracking.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace Studenttracking
             this.InitializeComponent();
             this.StudentsViewModel = new StudentsViewModel();
             this.DataContext = this.StudentsViewModel;
+            this.readSpreadSheet();
         }
 
         public async void readSpreadSheet()
@@ -40,12 +42,18 @@ namespace Studenttracking
             {
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary
             };
-
+            filePicker.FileTypeFilter.Add("*");
             var spreadSheet = await filePicker.PickSingleFileAsync();
 
-            var studentManagerBuilder = new StudentManagerBuilder();
-
-            var studentList = await studentManagerBuilder.Build(spreadSheet);
+            if (spreadSheet != null)
+            {
+                var studentManagerBuilder = new StudentManagerBuilder();
+                var studentList = await studentManagerBuilder.Build(spreadSheet);
+                this.StudentsViewModel.Students = studentList.ToObservableCollection();
+                var text = studentManagerBuilder.Errors.Aggregate(string.Empty, (err1, err2) => err1.ToString() + Environment.NewLine + err2.ToString() + Environment.NewLine);
+                this.errs.Text = text;
+            }
+            
         }
     }
 }

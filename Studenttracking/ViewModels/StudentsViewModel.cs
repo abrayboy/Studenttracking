@@ -40,15 +40,7 @@ namespace Studenttracking.ViewModels
         public StudentsViewModel()
         {
             this.StudentManager = new StudentManager();
-            this.Students = new ObservableCollection<Student>
-            {
-                new Student("Jack"),
-                 new Student("Jck"),
-                  new Student("Jak"),
-                   new Student("Jac"),
-                    new Student("ack")
-
-            };
+            this.Students = new ObservableCollection<Student>();
         }
 
         public void Add(Student student)
@@ -61,6 +53,12 @@ namespace Studenttracking.ViewModels
         {
             this.studentManager.Remove(student);
             this.Students = this.studentManager.ToObservableCollection();
+        }
+
+        public void UpdateStudentList(StudentManager students)
+        {
+            this.StudentManager = students;
+            this.Students = this.StudentManager.ToObservableCollection();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

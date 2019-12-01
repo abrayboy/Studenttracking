@@ -26,6 +26,8 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+
+        <TextBlock x:ConnectionId='3' x:Name="errs" RelativePanel.RightOf="Student"/>
     </RelativePanel>
 </Page>
 

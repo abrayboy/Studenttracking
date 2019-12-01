@@ -18,7 +18,10 @@ namespace Studenttracking.Models
             set { this.students = value; }
         }
 
-        public StudentManager() { }
+        public StudentManager()
+        {
+            this.students = new List<Student>();
+        }
 
         public int Count => students.Count;
 

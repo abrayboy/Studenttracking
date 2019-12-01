@@ -74,7 +74,7 @@ namespace Studenttracking.Models
             public const string CompletedFAFSA                  = "Completed FAFSA?";
             public const string AdmissionDeadline               = "Admission Deadlines";
             public const string Rejected                        = "Rejected?";
-            public const string Waitlisted                      = "Rejected?";
+            public const string Waitlisted                      = "Waitlisted?";
             public const string Accepted                        = "Accepted ?";
             public const string CollegePacketCompleted          = "College Packet Complete?";
             public const string CoachFinalReview                = "Coach Final Review";
@@ -83,7 +83,7 @@ namespace Studenttracking.Models
             public const string Interview                       = "Interview?";
             public const string ScholarshipAwarded              = "Scholarship Awarded";
 
-            public static List<string> Values = new List<string>
+            private static string[] Values = 
             {
                 StudentName,
                 CoachName,
@@ -111,6 +111,67 @@ namespace Studenttracking.Models
                 Interview,
                 ScholarshipAwarded
             };
+
+
+            public static IDictionary<string, int> GetHeaders(string headerLine)
+            {
+                var headersMap = new Dictionary<string, int>();
+                var headers = headerLine.Split(',');
+                headersMap.Add(Headers.StudentName, Array.IndexOf(headers, StudentName));
+                headersMap.Add(Headers.CoachName, Array.IndexOf(headers, CoachName));
+                headersMap.Add(Headers.FirstGeneration, Array.IndexOf(headers, FirstGeneration));
+                headersMap.Add(Headers.Race, Array.IndexOf(headers, Race));
+                headersMap.Add(Headers.Disability, Array.IndexOf(headers, Disability));
+                headersMap.Add(Headers.Classification, Array.IndexOf(headers, Classification));
+                headersMap.Add(Headers.SevenTargetedSchoolCompleted, Array.IndexOf(headers, SevenTargetedSchoolCompleted));
+                headersMap.Add(Headers.ScholarshipMatchingComplete, Array.IndexOf(headers, ScholarshipMatchingComplete));
+                headersMap.Add(Headers.ScholarshipEssay, Array.IndexOf(headers, ScholarshipEssay));
+                headersMap.Add(Headers.ScholarshipDeadline, Array.IndexOf(headers, ScholarshipDeadline));
+                headersMap.Add(Headers.ScholarshipEssayThree, Array.IndexOf(headers, ScholarshipEssayThree));
+                headersMap.Add(Headers.ReviewOfEssay, Array.IndexOf(headers, ReviewOfEssay));
+                headersMap.Add(Headers.CollegeApplicationDeadline, Array.IndexOf(headers, CollegeApplicationDeadline));
+                headersMap.Add(Headers.CompletedFAFSA, Array.IndexOf(headers, CompletedFAFSA));
+                headersMap.Add(Headers.AdmissionDeadline, Array.IndexOf(headers, AdmissionDeadline));
+                headersMap.Add(Headers.Rejected, Array.IndexOf(headers, Rejected));
+                headersMap.Add(Headers.Waitlisted, Array.IndexOf(headers, Waitlisted));
+                headersMap.Add(Headers.Accepted, Array.IndexOf(headers, Accepted));
+                headersMap.Add(Headers.CollegePacketCompleted, Array.IndexOf(headers, CollegePacketCompleted));
+                headersMap.Add(Headers.CoachFinalReview, Array.IndexOf(headers, CoachFinalReview));
+                headersMap.Add(Headers.LOR, Array.IndexOf(headers, LOR));
+                headersMap.Add(Headers.Resume, Array.IndexOf(headers, Resume));
+                headersMap.Add(Headers.Interview, Array.IndexOf(headers, Interview));
+                headersMap.Add(Headers.ScholarshipAwarded, Array.IndexOf(headers, ScholarshipAwarded));
+                return headersMap;
+            }
+
+            public static class Headers
+            {
+                public const string StudentName                         = "StudentName";
+                public const string CoachName                           = "CoachName";
+                public const string FirstGeneration                     = "FirstGeneration";
+                public const string Race                                = "Race";
+                public const string Disability                          = "Disability";
+                public const string Classification                      = "Classification";
+                public const string SevenTargetedSchoolCompleted        = "SevenTargetedSchoolCompleted";
+                public const string NotifiedStudent                     = "NotifiedStudent";
+                public const string ScholarshipMatchingComplete         = "ScholarshipMatchingComplete";
+                public const string ScholarshipEssay                    = "ScholarshipEssay";
+                public const string ScholarshipDeadline                 = "ScholarshipDeadline";
+                public const string ScholarshipEssayThree               = "ScholarshipEssayThree";
+                public const string ReviewOfEssay                       = "ReviewOfEssay";
+                public const string CollegeApplicationDeadline          = "CollegeApplicationDeadline";
+                public const string CompletedFAFSA                      = "CompletedFAFSA";
+                public const string AdmissionDeadline                   = "AdmissionDeadline";
+                public const string Rejected                            = "Rejected";
+                public const string Waitlisted                          = "Waitlisted";
+                public const string Accepted                            = "Accepted";
+                public const string CollegePacketCompleted              = "CollegePacketCompleted";
+                public const string CoachFinalReview                    = "CoachFinalReview";
+                public const string LOR                                 = "LOR";
+                public const string Resume                              = "Resume";
+                public const string Interview                           = "Interview";
+                public const string ScholarshipAwarded                  = "ScholarshipAwarded";
+            }
 
         }
         

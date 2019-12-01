@@ -104,6 +104,8 @@
     <Compile Include="Models\StudentManager.cs" />
     <Compile Include="Models\Classification.cs" />
     <Compile Include="IO\StudentManagerBuilder.cs" />
+    <Compile Include="Util\AbstractUtils.cs" />
+    <Compile Include="Util\ClassificationUtils.cs" />
     <Compile Include="Util\TextToBoolean.cs" />
     <Compile Include="ViewModels\StudentsViewModel.cs" />
   </ItemGroup>
