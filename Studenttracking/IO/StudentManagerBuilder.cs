@@ -25,31 +25,33 @@ namespace Studenttracking.IO
             var lines = await FileIO.ReadLinesAsync(spreadSheet);
             var studentManager = new StudentManager();
             var headers = lines[0];
+            var headerFields = headers.Split(',');
+            var headerMap = Student.Fields.GetHeaders(headers);
             for (var i = 1; i < lines.Count; i++)
             {
                 try
                 {
                     var fields = lines[i].Split(',');
-                    var student = new Student(fields[Array.IndexOf(fields, Student.Fields.CoachName)], fields[Array.IndexOf(fields, Student.Fields.Race)],
-                        GetClassification(fields[Array.IndexOf(fields, Student.Fields.Classification)]), DateTime.Parse(fields[Array.IndexOf(fields, Student.Fields.ScholarshipDeadline)]),
-                        DateTime.Parse(fields[Array.IndexOf(fields, Student.Fields.ScholarshipEssayThree)]), fields[Array.IndexOf(fields, Student.Fields.ReviewOfEssay)],
-                        fields[Array.IndexOf(fields, Student.Fields.CollegeApplicationDeadline)], fields[Array.IndexOf(fields, Student.Fields.AdmissionDeadline)],
-                        fields[Array.IndexOf(fields, Student.Fields.CoachFinalReview)], fields[Array.IndexOf(fields, Student.Fields.LOR)],
-                        double.Parse(fields[Array.IndexOf(fields, Student.Fields.ScholarshipEssayThree)]))
+                    var student = new Student(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.CoachName)).Value], fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Race)).Value],
+                        ClassificationUtils.GetClassification(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Classification)).Value]), DateTime.Parse(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ScholarshipDeadline)).Value]),
+                        DateTime.Parse(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ScholarshipEssayThree)).Value]), fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ReviewOfEssay)).Value],
+                        fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.CollegeApplicationDeadline)).Value], fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.AdmissionDeadline)).Value],
+                        fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.CoachFinalReview)).Value], fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.LOR)).Value],
+                        double.Parse(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ScholarshipEssayThree)).Value]))
                     {
-                        FirstGeneration = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.FirstGeneration)]),
-                        Disability = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Disability)]),
-                        SevenTargetedSchoolCompleted = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.SevenTargetedSchoolCompleted)]),
-                        NotifiedStudent = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.NotifiedStudent)]),
-                        ScholarshipMatchingComplete = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.ScholarshipMatchingComplete)]),
-                        ScholarshipEssay = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.ScholarshipEssay)]),
-                        CompletedFAFSA = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.CompletedFAFSA)]),
-                        Rejected = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Rejected)]),
-                        Waitlisted = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Waitlisted)]),
-                        Accepted = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Accepted)]),
-                        CollegePacketCompleted = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.CollegePacketCompleted)]),
-                        Resume = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Resume)]),
-                        Interview = TextToBool.Get(fields[Array.IndexOf(fields, Student.Fields.Interview)])
+                        FirstGeneration = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.FirstGeneration)).Value]),
+                        Disability = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Disability)).Value]),
+                        SevenTargetedSchoolCompleted = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.SevenTargetedSchoolCompleted)).Value]),
+                        NotifiedStudent = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.NotifiedStudent)).Value]),
+                        ScholarshipMatchingComplete = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ScholarshipMatchingComplete)).Value]),
+                        ScholarshipEssay = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.ScholarshipEssay)).Value]),
+                        CompletedFAFSA = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.CompletedFAFSA)).Value]),
+                        Rejected = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Rejected)).Value]),
+                        Waitlisted = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Waitlisted)).Value]),
+                        Accepted = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Accepted)).Value]),
+                        CollegePacketCompleted = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.CollegePacketCompleted)).Value]),
+                        Resume = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Resume)).Value]),
+                        Interview = TextToBool.Get(fields[headerMap.First(k => k.Key.Equals(Student.Fields.Headers.Interview)).Value])
                     };
                     studentManager.Add(student);
                 }
@@ -67,33 +69,10 @@ namespace Studenttracking.IO
             return $"Error reading line {lineNumber} of input file {fileName}: {e.Message}";
         }
 
-        private Classification GetClassification(string classification)
+        private IDictionary<string, int> GetIndexes(string[] headers)
         {
-            switch(classification.Trim().ToLower())
-            {
-                case "senior":
-                    return Classification.Senior;
-                case "junior":
-                    return Classification.Junior;
-                case "sophomore":
-                    return Classification.Sophomore;
-                case "freshman":
-                    return Classification.Freshman;
-                case "grad":
-                    return Classification.Grad;
-                case "grad/med":
-                    return Classification.Grad_Med;
-                case "law":
-                    return Classification.Law;
-                case "engineering":
-                    return Classification.Engineering;
-                case "med":
-                    return Classification.Med;
-                case "phd":
-                    return Classification.Phd;
-                default:
-                    return Classification.None;
-            }
+            var indexMap = new Dictionary<string, int>();
+            return indexMap;
         }
     }
 }
